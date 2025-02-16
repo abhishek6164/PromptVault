@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Note = require("../models/Note");
-const authenticateUser = require("../middlewares/authMiddleware");
+const Note = require("../Models/Note");
+const authenticateUser = require("../Middlewares/authMiddleware");
 
 // 📌 Create a new note (Only logged-in users)
 router.post("/add", authenticateUser, async (req, res) => {
