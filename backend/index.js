@@ -10,7 +10,15 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+
+const corsOptions = {
+  origin: "https://p4dqxm-5173.csb.app", // Update with your frontend URL
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+app.use(cors(corsOptions));
+
+
 
 // Connect to MongoDB
 connectDB();

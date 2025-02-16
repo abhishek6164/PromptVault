@@ -27,16 +27,19 @@ function Signup() {
     }
 
     try {
-      const url = "http://localhost:8080/auth/signup";
-      const response = await fetch(url, {
+      const url = "https://p4dqxm-8080.csb.app/auth/signup";
+
+      const requestOptions = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(signupInfo),
-      });
+      };
 
+      const response = await fetch(url, requestOptions); // pass the requestOptions here
       const result = await response.json();
+
       const { success, message, error } = result;
 
       if (success) {
