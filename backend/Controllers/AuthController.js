@@ -24,27 +24,28 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
+    console.log("🟢 Login Request Received", req.body);
+
     const { email, password } = req.body;
-    console.log(`🔹 Login request for: ${email}`);
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Missing email or password" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
+      console.log("❌ User not found");
       return res.status(401).json({ success: false, message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log("❌ Invalid password");
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-    return res.json({
-      success: true,
-      message: "Login successful!",
-      jwtToken: token,
-      name: user.name,
-    });
+    console.log("✅ Login successful!");
+    return res.json({ success: true, message: "Login successful!", jwtToken: token });
 
   } catch (error) {
     console.error("❌ Login error:", error.message);

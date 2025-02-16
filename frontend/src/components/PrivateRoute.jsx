@@ -1,10 +1,16 @@
+// PrivateRoute.jsx
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
 const PrivateRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const token = localStorage.getItem("token");
 
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  // If there's no token, redirect to login page
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+
+  // If token exists, render the children (e.g., the dashboard)
+  return children;
 };
 
 export default PrivateRoute;

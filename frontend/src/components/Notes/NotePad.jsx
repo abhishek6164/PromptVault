@@ -1,144 +1,101 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import LeftPanel from "../Layout/LeftPanel";
 import SearchBar from "../Layout/SearchBar";
 import { Cards } from "../Cards/Cards";
 import InputBar from "../Layout/InputBar";
-import { useAuth } from "../../context/AuthProvider";
-import { handleError, handleSuccess } from "../../utils/index";
 
 function NotePad() {
   const [notes, setNotes] = useState([]);
-  const navigate = useNavigate();
-  const { token } = useAuth(); // Get token from AuthContext
+  const [filteredNotes, setFilteredNotes] = useState([]);
 
+  // Load notes from localStorage on component mount
   useEffect(() => {
-    if (!token) {
-      navigate("/login"); // Redirect to login if not authenticated
-    } else {
-      fetchNotes();
-    }
-  }, [token, navigate]);
+    const savedNotes = JSON.parse(localStorage.getItem("notes") || "[]");
+    setNotes(savedNotes);
+    setFilteredNotes(savedNotes);
+  }, []);
 
-  // Fetch notes from backend
-  const fetchNotes = async () => {
-    try {
-      const response = await fetch("http://127.0.0.1:8080/notes", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` }, // ✅ Corrected syntax
-      });
-      const result = await response.json();
+  // Save notes to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("notes", JSON.stringify(notes));
+  }, [notes]);
 
-      if (result.success) {
-        setNotes(result.notes);
-      } else {
-        handleError(result.message);
-      }
-    } catch (err) {
-      console.error("Error fetching notes:", err);
-      handleError("Failed to fetch notes.");
-    }
-  };
-
-  const addNote = async (text, isRecorded = false) => {
-    if (!text.trim()) return;
-
-    const newNote = {
-      title: `Note ${notes.length + 1}`,
-      description: text,
-      isRecorded,
+  const addNote = (newNote) => {
+    const noteWithDefaults = {
+      ...newNote,
+      id: Date.now(),
+      date: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      isNew: true,
+      isFavorite: false,
     };
 
-    try {
-      const response = await fetch("http://127.0.0.1:8080/notes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ Corrected
-        },
-        body: JSON.stringify(newNote),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        handleSuccess("Note added successfully!");
-        setNotes([result.note, ...notes]);
-      } else {
-        handleError(result.message);
-      }
-    } catch (err) {
-      console.error("Error adding note:", err);
-      handleError("Failed to add note.");
-    }
+    setNotes((prevNotes) => [noteWithDefaults, ...prevNotes]);
+    setFilteredNotes((prevNotes) => [noteWithDefaults, ...prevNotes]);
   };
 
-  const handleUpdateNote = async (updatedNote) => {
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8080/notes/${updatedNote.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // ✅ Corrected
-          },
-          body: JSON.stringify(updatedNote),
-        }
-      );
-
-      const result = await response.json();
-      if (result.success) {
-        handleSuccess("Note updated successfully!");
-        setNotes((prevNotes) =>
-          prevNotes.map((note) =>
-            note.id === updatedNote.id ? updatedNote : note
-          )
-        );
-      } else {
-        handleError(result.message);
-      }
-    } catch (err) {
-      console.error("Error updating note:", err);
-      handleError("Failed to update note.");
-    }
+  const handleUpdateNote = (updatedNote) => {
+    setNotes((prevNotes) =>
+      prevNotes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
+    );
+    setFilteredNotes((prevNotes) =>
+      prevNotes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
+    );
   };
 
-  const handleDeleteNote = async (noteId) => {
-    try {
-      const response = await fetch(`http://127.0.0.1:8080/notes/${noteId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }, // ✅ Corrected
-      });
+  const handleDeleteNote = (noteId) => {
+    setNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
+    setFilteredNotes((prevNotes) =>
+      prevNotes.filter((note) => note.id !== noteId)
+    );
+  };
 
-      const result = await response.json();
-      if (result.success) {
-        handleSuccess("Note deleted successfully!");
-        setNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
-      } else {
-        handleError(result.message);
-      }
-    } catch (err) {
-      console.error("Error deleting note:", err);
-      handleError("Failed to delete note.");
-    }
+  const handleSearch = (query, sortOrder) => {
+    let searchResults = notes.filter((note) => {
+      const titleMatch = note.title
+        ?.toLowerCase()
+        .includes(query.toLowerCase());
+      const descriptionMatch = note.description
+        ?.toLowerCase()
+        .includes(query.toLowerCase());
+      return titleMatch || descriptionMatch;
+    });
+
+    // Apply sorting
+    searchResults.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+
+    setFilteredNotes(searchResults);
   };
 
   return (
-    <div className="relative flex bg-gray-100">
-      <LeftPanel />
+    <div className="relative flex flex-col scrollbar-hide md:flex-row min-h-screen ">
+      <div className="md:w-64 lg:w-1/5">
+        <LeftPanel />
+      </div>
 
-      <div className="flex h-[750px] flex-col flex-grow relative">
-        <SearchBar />
-
-        <div className="flex-grow overflow-y-auto p-4">
-          <Cards
-            notes={notes}
-            onUpdateNote={handleUpdateNote}
-            onDeleteNote={handleDeleteNote}
-          />
+      <div className="flex-1 flex flex-col min-h-screen max-h-screen">
+        <div className="sticky top-0 z-10  ">
+          <SearchBar onSearch={handleSearch} />
         </div>
 
-        <div className="bg-white shadow-lg">
+        <div className="flex-1 overflow-y-auto scrollbar-hide  md:px-6 lg:px-8 ">
+          <div className="max-w-7xl mx-auto">
+            <Cards
+              notes={filteredNotes}
+              onUpdateNote={handleUpdateNote}
+              onDeleteNote={handleDeleteNote}
+            />
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 z-10 ">
           <InputBar addNote={addNote} />
         </div>
       </div>

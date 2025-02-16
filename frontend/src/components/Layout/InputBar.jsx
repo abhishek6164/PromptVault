@@ -4,14 +4,14 @@ import { Pencil, Image, Mic } from "lucide-react";
 function InputBar({ addNote }) {
   const [text, setText] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [selectedColor, setSelectedColor] = useState("#000000"); // Default black
+  const [selectedColor, setSelectedColor] = useState("#000000");
   const [image, setImage] = useState(null);
+  const [title, setTitle] = useState("");
 
   const fileInputRef = useRef(null);
   const colorPickerRef = useRef(null);
   const recognitionRef = useRef(null);
 
-  // Start/Stop Voice Recording
   const handleRecordingToggle = () => {
     if (!isRecording) {
       startRecording();
@@ -73,105 +73,146 @@ function InputBar({ addNote }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (text.trim()) {
-      addNote(text);
+      const id = Date.now();
+      const noteTitle = title || `Note ${id}`; // Fix for template literal
+      const newNote = {
+        id,
+        title: noteTitle,
+        description: text,
+        color: selectedColor,
+        image: image,
+        date: new Date().toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        isRecorded: isRecording,
+        isFavorite: false,
+        searchKey: `${noteTitle}-${id}`.toLowerCase(), // Fix for template literal
+      };
+
+      addNote(newNote);
+
+      // Reset form
       setText("");
+      setTitle("");
+      setImage(null);
+      setSelectedColor("#000000");
     }
   };
 
   return (
-    <div className="ml-96 mr-3 rounded-xl flex items-center justify-center">
-      <div className="w-full max-w-3xl rounded-2xl shadow-lg p-4">
+    <div className="    sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24 py-2">
+      <div className="max-w-6xl  rounded-2xl   duration-300 hover:shadow-1xl">
         <form
           onSubmit={handleSubmit}
-          className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 shadow-sm"
+          className="flex flex-col   border border-gray-200 rounded-xl px-2 py-1 bg-white/50"
         >
-          {/* Left icons */}
-          <div className="flex gap-3">
-            {/* Color Picker */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => colorPickerRef.current.click()}
-              >
-                <Pencil size={20} color={selectedColor} />
-              </button>
+          {/* Title input */}
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter note title..."
+            className="w-full bg-transparent outline-none placeholder-gray-400 px-3 py-2 text-lg font-medium border-b border-gray-200 focus:border-blue-300"
+          />
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            {/* Left icons group */}
+            <div className="flex gap-4 w-full sm:w-auto justify-center sm:justify-start">
+              <div className="relative group">
+                <button
+                  type="button"
+                  onClick={() => colorPickerRef.current.click()}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                >
+                  <Pencil size={20} color={selectedColor} />
+                </button>
+                <input
+                  type="color"
+                  ref={colorPickerRef}
+                  value={selectedColor}
+                  onChange={(e) => setSelectedColor(e.target.value)}
+                  className="absolute left-0 top-full mt-2 w-8 h-8 cursor-pointer opacity-0"
+                />
+              </div>
+
+              <div className="relative group">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                >
+                  <Image size={20} className="text-gray-600" />
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png, image/jpeg, image/svg+xml"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
+            {/* Input field */}
+            <div className="flex-1 w-full">
               <input
-                type="color"
-                ref={colorPickerRef}
-                value={selectedColor}
-                onChange={(e) => setSelectedColor(e.target.value)}
-                className="absolute left-0 top-8 w-8 h-8 cursor-pointer opacity-0"
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Type a message or record..."
+                className="w-full bg-transparent outline-none placeholder-gray-400 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                disabled={isRecording}
               />
             </div>
 
-            {/* Image Upload */}
-            <div className="relative">
+            {/* Action buttons */}
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
               <button
                 type="button"
-                onClick={() => fileInputRef.current.click()}
+                onClick={handleRecordingToggle}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+                  isRecording
+                    ? "bg-red-50 text-red-600 hover:bg-red-100"
+                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+                }`}
               >
-                <Image size={20} />
+                <Mic
+                  size={20}
+                  className={`transition-colors duration-300 ${
+                    isRecording ? "animate-pulse text-red-500" : "text-gray-600"
+                  }`}
+                />
+                <span className="text-sm font-medium hidden sm:inline">
+                  {isRecording ? "Stop" : "Record"}
+                </span>
               </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/png, image/jpeg, image/svg+xml"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
+
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-300 font-medium text-sm"
+              >
+                Add Note
+              </button>
             </div>
           </div>
-
-          {/* Input field */}
-          <div className="flex-1">
-            <input
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Type a message or record..."
-              className="w-full bg-transparent outline-none placeholder-gray-400"
-              disabled={isRecording}
-            />
-          </div>
-
-          {/* Recording button */}
-          <button
-            type="button"
-            onClick={handleRecordingToggle}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              isRecording
-                ? "bg-red-50 text-red-600"
-                : "bg-white text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            <Mic
-              size={20}
-              className={
-                isRecording ? "animate-pulse text-red-500" : "text-gray-600"
-              }
-            />
-            <span className="text-sm font-medium">
-              {isRecording ? "Stop" : "Record"}
-            </span>
-          </button>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="ml-2 text-blue-500 hover:text-blue-700"
-          >
-            Add
-          </button>
         </form>
 
-        {/* Display uploaded image */}
+        {/* Image preview */}
         {image && (
-          <div className="mt-3">
+          <div className="mt-4 relative group">
             <img
               src={image}
               alt="Uploaded"
-              className="w-20 h-20 object-cover rounded-lg"
+              className="w-24 h-24 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
             />
+            <button
+              onClick={() => setImage(null)}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            >
+              ×
+            </button>
           </div>
         )}
       </div>
