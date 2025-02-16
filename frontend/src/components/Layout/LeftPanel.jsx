@@ -41,7 +41,7 @@ const LeftPanel = () => {
 
             <button
               className="flex items-center w-full text-lg text-gray-700 hover:bg-purple-100 hover:text-purple-700 rounded-xl p-3 transition-all duration-200 group"
-              onClick={() => navigate("/favourites")}
+              onClick={() => navigate("/dashboard")}
             >
               <StarBorderIcon className="mr-3 group-hover:scale-110 transition-transform" />
               <span className="hidden md:inline">Favorites</span>
