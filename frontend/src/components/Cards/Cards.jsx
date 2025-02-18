@@ -5,14 +5,22 @@ import { NoteModal } from "../Notes/NoteModal";
 export function Cards({ notes, onUpdateNote, onDeleteNote }) {
   const [selectedNote, setSelectedNote] = useState(null);
   const [displayedNotes, setDisplayedNotes] = useState([]);
+  const [loggedInUser, setLoggedInUser] = useState(""); // Fixed variable name
+
+  // Fetch logged-in user from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("loggedInUser");
+    if (storedUser) {
+      setLoggedInUser(storedUser);
+    }
+  }, []);
 
   // Update displayed notes whenever notes prop changes
   useEffect(() => {
     if (notes && notes.length > 0) {
-      // Add a unique searchKey to each note that includes title and id
       const notesWithSearchKeys = notes.map((note) => ({
         ...note,
-        searchKey: `${note.title || ""}-${note.id}`.toLowerCase(), // Corrected template literal syntax
+        searchKey: `${note.title || ""}-${note.id}`.toLowerCase(),
       }));
       setDisplayedNotes(notesWithSearchKeys);
     } else {
@@ -29,9 +37,8 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
   };
 
   const handleUpdateNote = (updatedNote) => {
-    // Update the searchKey when note is updated
     const newSearchKey =
-      `${updatedNote.title || ""}-${updatedNote.id}`.toLowerCase(); // Corrected template literal syntax
+      `${updatedNote.title || ""}-${updatedNote.id}`.toLowerCase();
     const updatedNoteWithKey = {
       ...updatedNote,
       searchKey: newSearchKey,
@@ -57,7 +64,7 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
         const updatedNote = {
           ...note,
           isFavorite: !note.isFavorite,
-          favoriteKey: uniqueKey || note.favoriteKey, // Retain existing key if unliking
+          favoriteKey: uniqueKey || note.favoriteKey,
         };
 
         return updatedNote;
@@ -70,10 +77,17 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
   };
 
   return (
-    <div className=" rounded-2xl mt-3 overflow-hidden p-6 sm:p-8 md:p-10 duration-300 scrollbar-hide ">
+    <div className="rounded-2xl mt-3 overflow-hidden p-6 sm:p-8 md:p-10 duration-300 scrollbar-hide">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8 overflow-y-auto h-[calc(100vh-300px)] min-h-[500px] max-h-[800px] scrollbar-hide pb-20">
         {displayedNotes.length === 0 ? (
-          <div className="col-span-full flex items-center justify-center h-full">
+          <div className="col-span-full flex flex-col items-center justify-center h-full">
+            <h1 className="text-gray-400 text-2xl font-medium animate-pulse font-semibold ">
+              Welcome,
+              <span className="text-gray-800  font-medium ">
+                {" "}
+                {loggedInUser || "Guest"}
+              </span>
+            </h1>
             <p className="text-gray-400 text-lg font-medium animate-pulse">
               No notes available. Start typing...
             </p>
@@ -86,7 +100,7 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
                 searchKey={note.searchKey}
                 onClick={() => handleNoteClick(note)}
                 onDelete={() => handleDeleteNote(note.id)}
-                onToggleFavorite={() => handleToggleFavorite(note)}
+                onToggleFavorite={() => handleToggleFavorite(note.id)}
               />
             </div>
           ))

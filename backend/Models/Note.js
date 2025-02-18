@@ -3,16 +3,16 @@ const mongoose = require("mongoose");
 const noteSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: [true, "Title is required"]
+    required: [true, "Title is required"],
   },
-  content: {  
+  content: {
     type: String,
-    required: [true, "Content is required"]
+    required: [true, "Content is required"],
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  }
+    ref: "User",
+  },
 });
 
 const Note = mongoose.model("Note", noteSchema);

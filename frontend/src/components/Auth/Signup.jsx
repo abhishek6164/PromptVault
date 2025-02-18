@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { handleError, handleSuccess } from "../../utils/index";
-
+import "react-toastify/dist/ReactToastify.css";
 function Signup() {
   const [signupInfo, setSignupInfo] = useState({
     name: "",
@@ -27,7 +27,7 @@ function Signup() {
     }
 
     try {
-      const url = "https://p4dqxm-8080.csb.app/auth/signup";
+      const url = "https://wjqnsz-8080.csb.app/auth/signup";
 
       const requestOptions = {
         method: "POST",

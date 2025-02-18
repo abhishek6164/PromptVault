@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { handleError, handleSuccess } from "../../utils/index";
-
+import "react-toastify/dist/ReactToastify.css";
 function Login() {
   const [loginInfo, setLoginInfo] = useState({ email: "", password: "" });
   const navigate = useNavigate();
@@ -21,7 +21,8 @@ function Login() {
       return handleError("Email and password are required");
     }
     try {
-      const url = "http://127.0.0.1:8080/auth/login";
+      const url = "https://wjqnsz-8080.csb.app/auth/login"; // Correct backend URL for production
+
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -31,15 +32,11 @@ function Login() {
       const result = await response.json();
 
       if (result.success) {
+        console.log("Login Response:", result); // Debugging
         handleSuccess(result.message);
-        localStorage.setItem("token", result.jwtToken);
-        localStorage.setItem(
-          "loggedInUser",
-          JSON.stringify({
-            name: result.name,
-            email: email,
-          })
-        );
+
+        localStorage.setItem("token", result.jwtToken); // Ensure jwtToken exists
+        localStorage.setItem("loggedInUser", result.name || "Guest"); // Default value for safety
 
         navigate("/dashboard");
       } else {

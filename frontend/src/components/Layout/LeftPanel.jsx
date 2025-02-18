@@ -8,6 +8,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { handleSuccess } from "../../utils";
 
 const LeftPanel = () => {
   const [showSettings, setShowSettings] = useState(false);
@@ -16,6 +17,7 @@ const LeftPanel = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("loggedInUser");
+    handleSuccess("User Logged Out Successfully");
     navigate("/login");
   };
 

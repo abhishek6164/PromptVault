@@ -8,17 +8,11 @@ require("dotenv").config();
 
 const app = express();
 
-// Middleware
+// CORS Middleware: Define options first
+app.use(cors());
+
+// Middleware to parse JSON bodies
 app.use(express.json());
-
-const corsOptions = {
-  origin: "https://p4dqxm-5173.csb.app", // Update with your frontend URL
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-};
-app.use(cors(corsOptions));
-
-
 
 // Connect to MongoDB
 connectDB();
@@ -27,9 +21,13 @@ connectDB();
 app.use("/auth", authRoutes);
 app.use("/notes", noteRoutes);
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+// Logging middleware (after routes)
 app.use((req, res, next) => {
   console.log(`🔹 ${req.method} ${req.url}`);
   next();
+});
+
+const PORT = process.env.PORT || 5000; // Change 8080 to 5000 (or any free port)
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

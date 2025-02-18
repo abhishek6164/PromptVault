@@ -10,10 +10,22 @@ router.post("/add", authenticateUser, async (req, res) => {
     const newNote = new Note({ userId: req.user.id, title, content });
     await newNote.save();
 
-    return res.status(201).json({ success: true, message: "Note added successfully", note: newNote });
+    return res
+      .status(201)
+      .json({
+        success: true,
+        message: "Note added successfully",
+        note: newNote,
+      });
   } catch (error) {
     console.error("❌ Error adding note:", error.message);
-    res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal Server Error",
+        error: error.message,
+      });
   }
 });
 
@@ -24,7 +36,13 @@ router.get("/", authenticateUser, async (req, res) => {
     res.json({ success: true, notes: userNotes });
   } catch (error) {
     console.error("❌ Error fetching notes:", error.message);
-    res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal Server Error",
+        error: error.message,
+      });
   }
 });
 

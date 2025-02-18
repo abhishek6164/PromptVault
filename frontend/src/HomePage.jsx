@@ -1,7 +1,8 @@
 // src/components/HomePage.jsx
 import { Link } from "react-router-dom"; // For navigation between pages
-
+import { useEffect, useState } from "react";
 const HomePage = () => {
+  const [loggedInUser, setLoggedInUSer] = useState("");
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-200 p-4 sm:p-6 md:p-8">
       <div className="max-w-4xl w-full px-4 py-8 sm:py-12 bg-white rounded-2xl shadow-xl">
