@@ -23,13 +23,17 @@ export function NoteModal({ note, isOpen, onClose, onUpdate }) {
     setIsFullscreen(!isFullscreen);
   };
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      const imageUrl = URL.createObjectURL(file);
-      setPreviewImage(imageUrl);
-    }
-  };
+ const handleImageUpload = (event) => {
+  const file = event.target.files?.[0];
+  if (file && file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result); // Base64 string
+    };
+    reader.readAsDataURL(file);
+  }
+};
+  
 
   const handleSave = () => {
     const updatedNote = {

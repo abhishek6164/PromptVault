@@ -26,7 +26,7 @@ function App() {
           element={<PrivateRoute element={<NotePad />} />}
         />
         <Route
-          path="/dashboard"
+          path="/favorites"
           element={<PrivateRoute element={<Favorites />} />}
         />
       </Routes>

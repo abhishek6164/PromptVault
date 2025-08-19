@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import LeftPanel from "../Layout/LeftPanel";
 import SearchBar from "../Layout/SearchBar";
 import { Cards } from "../Cards/Cards";
@@ -8,40 +9,126 @@ function Favorites() {
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
 
-  // Load notes from localStorage on mount
+  // Fetch favorites notes from MongoDB
   useEffect(() => {
-    const savedNotes = JSON.parse(localStorage.getItem("notes") || "[]");
-    const favoriteNotes = savedNotes.filter((note) => note.isFavorite);
-    setNotes(favoriteNotes);
-    setFilteredNotes(favoriteNotes);
+    fetchNotes();
   }, []);
 
-  // Save notes to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("notes", JSON.stringify(notes));
-  }, [notes]);
+  const fetchNotes = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        "http://localhost:5000/api/notes/favorites",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-  // Add new note
-  const addNote = (newNote) => {
-    const noteWithFavorite = { ...newNote, isFavorite: true };
-    setNotes((prevNotes) => [noteWithFavorite, ...prevNotes]);
+      const safeNotes = Array.isArray(res.data.notes) ? res.data.notes : [];
+      setNotes(safeNotes);
+      setFilteredNotes(safeNotes);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      setNotes([]);
+      setFilteredNotes([]);
+    }
   };
 
-  // Update existing note
-  const handleUpdateNote = (updatedNote) => {
-    setNotes((prevNotes) =>
-      prevNotes.map((note) => (note.id === updatedNote.id ? updatedNote : note))
-    );
+  // Add note (always favorite in this page)
+  const addNote = async (newNote) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        "http://localhost:5000/api/notes/add",
+        { ...newNote, isFavorite: true },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res.data?.note) {
+        setNotes((prev) => [res.data.note, ...prev]);
+        setFilteredNotes((prev) => [res.data.note, ...prev]);
+      }
+    } catch (error) {
+      console.error("Error adding note:", error);
+    }
   };
 
-  // Delete a note
-  const handleDeleteNote = (noteId) => {
-    setNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
+  // Toggle favorite (like button)
+  const toggleFavorite = async (id, currentStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.put(
+        `http://localhost:5000/api/notes/${id}`,
+        { isFavorite: !currentStatus },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const updatedNote = res.data?.note;
+
+      // Remove if unfavorite
+      setNotes((prev) => prev.filter((note) => note._id !== id));
+      setFilteredNotes((prev) => prev.filter((note) => note._id !== id));
+
+      // If still favorite, add back
+      if (updatedNote?.isFavorite) {
+        setNotes((prev) => [updatedNote, ...prev]);
+        setFilteredNotes((prev) => [updatedNote, ...prev]);
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
   };
 
-  // Search and sort notes
+  // Update note
+  const handleUpdateNote = async (updatedNote) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.put(
+        `http://localhost:5000/api/notes/${updatedNote._id}`,
+        updatedNote,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const safeNote = res.data?.note;
+      if (!safeNote) return;
+
+      setNotes((prev) =>
+        prev.map((note) => (note._id === updatedNote._id ? safeNote : note))
+      );
+      setFilteredNotes((prev) =>
+        prev.map((note) => (note._id === updatedNote._id ? safeNote : note))
+      );
+    } catch (error) {
+      console.error("Error updating note:", error);
+    }
+  };
+
+  // Delete note
+  const handleDeleteNote = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:5000/api/notes/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setNotes((prev) => prev.filter((note) => note._id !== id));
+      setFilteredNotes((prev) => prev.filter((note) => note._id !== id));
+    } catch (error) {
+      console.error("Error deleting note:", error);
+    }
+  };
+
+  // Search notes
   const handleSearch = (query, sortOrder) => {
-    let searchResults = notes.filter((note) => {
+    const safeNotes = Array.isArray(notes) ? notes : [];
+
+    let searchResults = safeNotes.filter((note) => {
       const titleMatch =
         note.title?.toLowerCase().includes(query.toLowerCase()) || false;
       const descriptionMatch =
@@ -72,6 +159,7 @@ function Favorites() {
               notes={filteredNotes}
               onUpdateNote={handleUpdateNote}
               onDeleteNote={handleDeleteNote}
+              onToggleFavorite={toggleFavorite}
             />
           </div>
         </div>

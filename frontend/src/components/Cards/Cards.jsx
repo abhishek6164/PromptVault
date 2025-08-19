@@ -5,7 +5,7 @@ import { NoteModal } from "../Notes/NoteModal";
 export function Cards({ notes, onUpdateNote, onDeleteNote }) {
   const [selectedNote, setSelectedNote] = useState(null);
   const [displayedNotes, setDisplayedNotes] = useState([]);
-  const [loggedInUser, setLoggedInUser] = useState(""); // Fixed variable name
+  const [loggedInUser, setLoggedInUser] = useState("");
 
   // Fetch logged-in user from localStorage
   useEffect(() => {
@@ -18,10 +18,13 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
   // Update displayed notes whenever notes prop changes
   useEffect(() => {
     if (notes && notes.length > 0) {
-      const notesWithSearchKeys = notes.map((note) => ({
-        ...note,
-        searchKey: `${note.title || ""}-${note.id}`.toLowerCase(),
-      }));
+      const notesWithSearchKeys = notes.map((note) => {
+        const uniqueId = note._id || note.id; // ✅ safe unique id
+        return {
+          ...note,
+          searchKey: `${note.title || "untitled"}-${uniqueId}`.toLowerCase(),
+        };
+      });
       setDisplayedNotes(notesWithSearchKeys);
     } else {
       setDisplayedNotes([]);
@@ -37,15 +40,14 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
   };
 
   const handleUpdateNote = (updatedNote) => {
-    const newSearchKey =
-      `${updatedNote.title || ""}-${updatedNote.id}`.toLowerCase();
+    const uniqueId = updatedNote._id || updatedNote.id;
     const updatedNoteWithKey = {
       ...updatedNote,
-      searchKey: newSearchKey,
+      searchKey: `${updatedNote.title || "untitled"}-${uniqueId}`.toLowerCase(),
     };
 
     const updatedNotes = displayedNotes.map((note) =>
-      note.id === updatedNote.id ? updatedNoteWithKey : note
+      (note._id || note.id) === uniqueId ? updatedNoteWithKey : note
     );
     setDisplayedNotes(updatedNotes);
     onUpdateNote && onUpdateNote(updatedNoteWithKey);
@@ -53,21 +55,22 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
   };
 
   const handleDeleteNote = (id) => {
-    const updatedNotes = displayedNotes.filter((note) => note.id !== id);
+    const updatedNotes = displayedNotes.filter(
+      (note) => (note._id || note.id) !== id
+    );
     setDisplayedNotes(updatedNotes);
     onDeleteNote && onDeleteNote(id);
   };
 
   const handleToggleFavorite = (noteId, uniqueKey) => {
     const updatedNotes = displayedNotes.map((note) => {
-      if (note.id === noteId) {
-        const updatedNote = {
+      const currentId = note._id || note.id;
+      if (currentId === noteId) {
+        return {
           ...note,
           isFavorite: !note.isFavorite,
           favoriteKey: uniqueKey || note.favoriteKey,
         };
-
-        return updatedNote;
       }
       return note;
     });
@@ -81,9 +84,9 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8 overflow-y-auto h-[calc(100vh-300px)] min-h-[500px] max-h-[800px] scrollbar-hide pb-20">
         {displayedNotes.length === 0 ? (
           <div className="col-span-full flex flex-col items-center justify-center h-full">
-            <h1 className="text-gray-400 text-2xl font-medium animate-pulse font-semibold ">
+            <h1 className="text-gray-400 text-2xl font-medium animate-pulse font-semibold">
               Welcome,
-              <span className="text-gray-800  font-medium ">
+              <span className="text-gray-800 font-medium">
                 {" "}
                 {loggedInUser || "Guest"}
               </span>
@@ -99,8 +102,8 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
                 {...note}
                 searchKey={note.searchKey}
                 onClick={() => handleNoteClick(note)}
-                onDelete={() => handleDeleteNote(note.id)}
-                onToggleFavorite={() => handleToggleFavorite(note.id)}
+                onDelete={() => handleDeleteNote(note._id || note.id)}
+                onToggleFavorite={() => handleToggleFavorite(note._id || note.id)}
               />
             </div>
           ))

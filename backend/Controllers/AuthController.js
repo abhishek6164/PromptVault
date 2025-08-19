@@ -1,8 +1,9 @@
-const bcrypt = require('bcryptjs');
-const jwt = require("jsonwebtoken");
-const User = require("../Models/User");
+// Controllers/AuthController.js
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../Models/User.js";
 
-exports.signup = async (req, res) => {
+export const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
@@ -17,15 +18,12 @@ exports.signup = async (req, res) => {
 
     return res.status(201).json({ success: true, message: "Signup successful!" });
   } catch (error) {
-    console.error("❌ Signup error:", error.message);
     return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
   }
 };
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
-    console.log("🟢 Login Request Received", req.body);
-
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ success: false, message: "Missing email or password" });
@@ -33,22 +31,17 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      console.log("❌ User not found");
       return res.status(401).json({ success: false, message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.log("❌ Invalid password");
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    console.log("✅ Login successful!");
     return res.json({ success: true, message: "Login successful!", jwtToken: token });
-
   } catch (error) {
-    console.error("❌ Login error:", error.message);
     return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
   }
 };

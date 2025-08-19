@@ -48,11 +48,11 @@ function SearchBar({ onSearch }) {
                   type="text"
                   value={searchQuery}
                   onChange={handleInputChange}
-                  placeholder="Search notes by title or ID..."
+                  placeholder="Search Prompt by title or ID..."
                   className="w-full h-10 bg-white/90 backdrop-blur-sm rounded-xl pl-12 pr-4 shadow-lg hover:shadow-xl focus:shadow-xl outline-none border-2 border-gray-100 focus:border-purple-200 transition-all duration-300 text-gray-800 placeholder-gray-400"
                   autoComplete="off"
-                  title="Search by note title or ID"
-                  aria-label="Search notes by title or ID"
+                  title="Search by Prompt title or ID"
+                  aria-label="Search Prompt by title or ID"
                 />
                 <Search
                   size={20}

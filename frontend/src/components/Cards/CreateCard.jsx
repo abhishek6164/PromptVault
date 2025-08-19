@@ -91,19 +91,20 @@ export const CreateCard = React.memo(function CreateCard({
         </p>
       )}
 
-      {image && (
-        <div className="w-full h-40 overflow-hidden rounded-lg">
-          <img
-            src={image}
-            alt="Note attachment"
-            className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
-            onError={(e) => {
-              e.target.src = "fallback-image-url"; // Add a fallback image URL
-              console.error("Failed to load image");
-            }}
-          />
-        </div>
-      )}
+     {image && (
+  <div className="w-full h-40 overflow-hidden rounded-lg">
+    <img
+      src={image}
+      alt="Note attachment"
+      className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
+      onError={(e) => {
+        e.target.src = "/fallback.png"; // Public folder ka image
+        console.warn("Failed to load image, showing fallback");
+      }}
+    />
+  </div>
+)}
+
 
       <div className="flex items-center justify-between mt-4">
         <div className="flex gap-2">

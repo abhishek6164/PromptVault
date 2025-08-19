@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080/notes"; // Ensure this matches your backend
+const API_BASE_URL = "http://localhost:5000/notes"; // Ensure this matches your backend
 
 export const addNote = async (noteData) => {
   try {

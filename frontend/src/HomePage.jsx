@@ -7,10 +7,10 @@ const HomePage = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-200 p-4 sm:p-6 md:p-8">
       <div className="max-w-4xl w-full px-4 py-8 sm:py-12 bg-white rounded-2xl shadow-xl">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-blue-600 mb-4 sm:mb-6 transition-all duration-300 hover:text-blue-700">
-          Welcome to Note Creation App
+          Welcome to PromptVault
         </h1>
         <p className="text-lg sm:text-xl text-center text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto">
-          A simple app to create, manage, and organize your notes efficiently.
+          A simple app to create, manage, and organize your AI Prompts efficiently.
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">

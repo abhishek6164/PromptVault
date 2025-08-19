@@ -1,17 +1,20 @@
-const mongoose = require("mongoose");
-require("dotenv").config();
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      dbName: "auth-dh", // Ensure correct database name
+      dbName: "auth-dh", // custom DB name
     });
 
     console.log("✅ MongoDB Connected Successfully!");
   } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error);
+    console.error("❌ MongoDB Connection Error:", error.message);
     process.exit(1);
   }
 };
 
-module.exports = connectDB;
+export default connectDB;
+  

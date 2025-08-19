@@ -26,7 +26,7 @@ const LeftPanel = () => {
       <div className="p-6">
         <h1 className="flex items-center text-2xl font-bold mb-8 text-gray-800 hover:text-purple-600 transition-colors">
           <NoteAltIcon className="mr-2 text-purple-500" />
-          <span className="hidden md:inline">AI Note</span>
+          <span className="hidden md:inline">AI Prompts</span>
         </h1>
 
         <div className="flex flex-col h-[calc(100vh-12rem)]">
@@ -43,7 +43,7 @@ const LeftPanel = () => {
 
             <button
               className="flex items-center w-full text-lg text-gray-700 hover:bg-purple-100 hover:text-purple-700 rounded-xl p-3 transition-all duration-200 group"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/favorites")}
             >
               <StarBorderIcon className="mr-3 group-hover:scale-110 transition-transform" />
               <span className="hidden md:inline">Favorites</span>

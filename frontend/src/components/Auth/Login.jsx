@@ -3,15 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { handleError, handleSuccess } from "../../utils/index";
 import "react-toastify/dist/ReactToastify.css";
+
 function Login() {
   const [loginInfo, setLoginInfo] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const copyLoginInfo = { ...loginInfo };
-    copyLoginInfo[name] = value;
-    setLoginInfo(copyLoginInfo);
+    setLoginInfo({ ...loginInfo, [name]: value });
   };
 
   const handleLogin = async (e) => {
@@ -21,7 +20,7 @@ function Login() {
       return handleError("Email and password are required");
     }
     try {
-      const url = "https://wjqnsz-8080.csb.app/auth/login"; // Correct backend URL for production
+      const url = "http://localhost:5000/api/auth/login";
 
       const response = await fetch(url, {
         method: "POST",
@@ -35,8 +34,10 @@ function Login() {
         console.log("Login Response:", result); // Debugging
         handleSuccess(result.message);
 
-        localStorage.setItem("token", result.jwtToken); // Ensure jwtToken exists
-        localStorage.setItem("loggedInUser", result.name || "Guest"); // Default value for safety
+        // Important: Save token + userId + name
+        localStorage.setItem("token", result.jwtToken); 
+        localStorage.setItem("userId", result.userId);  // 👈 Save userId
+        localStorage.setItem("loggedInUser", result.name || "Guest"); 
 
         navigate("/dashboard");
       } else {

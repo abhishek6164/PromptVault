@@ -1,19 +1,44 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const noteSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, "Title is required"]
+const noteSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    color: {
+      type: String,
+      default: "#ffffff",
+    },
+    image: {
+      type: String, // 📌 URL of uploaded image / base64 string
+      default: "",
+    },
+    isFavorite: {
+      type: Boolean,
+      default: false,
+    },
+    favoriteKey: {
+      type: String,
+      default: "",
+    },
+    date: {
+      type: String,
+      default: new Date().toLocaleDateString(),
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
-  content: {  
-    type: String,
-    required: [true, "Content is required"]
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  }
-});
+  { timestamps: true }
+);
 
 const Note = mongoose.model("Note", noteSchema);
-module.exports = Note;
+export default Note;
