@@ -45,28 +45,23 @@ function NotePad() {
   };
 
   const addNote = async (newNote) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post(
-        "http://localhost:5000/api/notes",
-        {
-          ...newNote,
-          date: new Date().toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setNotes([res.data, ...notes]);
-      setFilteredNotes([res.data, ...filteredNotes]);
-    } catch (error) {
-      console.error("❌ Error adding note:", error);
-    }
-  };
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axios.post(
+      "http://localhost:5000/api/notes",
+      newNote,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    // 🔑 yaha res.data.note
+    setNotes((prev) => [res.data.note, ...prev]);
+    setFilteredNotes((prev) => [res.data.note, ...prev]);
+  } catch (error) {
+    console.error("❌ Error adding note:", error.response?.data || error.message);
+  }
+};
+
+
 
   const handleUpdateNote = async (updatedNote) => {
     try {

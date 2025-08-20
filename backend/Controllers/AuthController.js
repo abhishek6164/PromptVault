@@ -21,7 +21,6 @@ export const signup = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
   }
 };
-
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -40,7 +39,14 @@ export const login = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    return res.json({ success: true, message: "Login successful!", jwtToken: token });
+
+    return res.json({
+      success: true,
+      message: "Login successful!",
+      jwtToken: token,
+      userId: user._id,   // 👈 ye add kiya
+      name: user.name     // 👈 ye add kiya
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
   }

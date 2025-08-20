@@ -64,33 +64,23 @@ function InputBar({ addNote }) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!text.trim() && !title.trim()) return;
+  e.preventDefault();
+  if (!text.trim() && !title.trim()) return;
 
-    const noteData = {
-      title: title || "Untitled Note",
-      description: text,
-      color: selectedColor,
-      image,
-      date: new Date().toISOString(),
-    };
-
-    try {
-      const token = localStorage.getItem("token"); // token after login
-      const res = await axios.post("http://localhost:5000/api/notes", noteData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      addNote(res.data); // update UI
-      setText("");
-      setTitle("");
-      setImage(null);
-      setSelectedColor("#000000");
-    } catch (error) {
-      console.error("Error saving note:", error);
-      alert("Failed to save note");
-    }
+  const noteData = {
+    title: title || "Untitled Note",
+    description: text,
+    color: selectedColor,
+    image,
   };
+
+  addNote(noteData); // 👈 bas ye call kar, axios nahi
+  setText("");
+  setTitle("");
+  setImage(null);
+  setSelectedColor("#000000");
+};
+
 
   return (
     <div className="sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24 py-2">
@@ -104,7 +94,7 @@ function InputBar({ addNote }) {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter Note title..."
+            placeholder="Enter Prompt title..."
             className="w-full bg-transparent outline-none placeholder-gray-400 px-3 py-2 text-lg font-medium border-b border-gray-200 focus:border-blue-300"
           />
 
@@ -184,7 +174,7 @@ function InputBar({ addNote }) {
                 type="submit"
                 className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors font-medium text-sm"
               >
-                Add Note
+                Create  
               </button>
             </div>
           </div>

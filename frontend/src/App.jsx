@@ -15,7 +15,7 @@ function App() {
     return isAuthenticated ? element : <Navigate to="/login" />;
   };
   return (
-    <>
+    <div className="">
       <RefreshHandler setIsAuthenticated={setIsAuthenticated} />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -30,7 +30,7 @@ function App() {
           element={<PrivateRoute element={<Favorites />} />}
         />
       </Routes>
-    </>
+    </div>
   );
 }
 

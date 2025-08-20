@@ -1,18 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import NoteAltIcon from "@mui/icons-material/NoteAlt";
-import HomeIcon from "@mui/icons-material/Home";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PersonIcon from "@mui/icons-material/Person";
 import { handleSuccess } from "../../utils";
 
 const LeftPanel = () => {
   const [showSettings, setShowSettings] = useState(false);
+  const [username, setUsername] = useState("Guest");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("loggedInUser");
+    if (storedUser) {
+      setUsername(storedUser); // 👈 directly use string
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -22,7 +30,7 @@ const LeftPanel = () => {
   };
 
   return (
-    <div className="w-full md:w-64  mt-2 mx-3 mb-3 min-h-[calc(100vh-20px)] bg-white shadow-lg rounded-2xl transition-all duration-300">
+    <div className="w-full md:w-64 mt-2 mx-3 mb-3 min-h-[calc(100vh-20px)] bg-white shadow-lg rounded-2xl transition-all duration-300">
       <div className="p-6">
         <h1 className="flex items-center text-2xl font-bold mb-8 text-gray-800 hover:text-purple-600 transition-colors">
           <NoteAltIcon className="mr-2 text-purple-500" />
@@ -61,15 +69,18 @@ const LeftPanel = () => {
                 <SettingsIcon className="mr-3" />
                 <span className="hidden md:inline text-lg">Settings</span>
               </div>
-              {showSettings ? (
-                <KeyboardArrowUpIcon />
-              ) : (
-                <KeyboardArrowDownIcon />
-              )}
+              {showSettings ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </button>
 
             {showSettings && (
               <div className="mt-2 pl-4 space-y-2 animate-fadeIn">
+                {/* Profile Section */}
+                <div className="flex items-center w-full text-lg text-gray-700 bg-purple-50 rounded-xl p-3">
+                  <PersonIcon className="mr-3 text-purple-600" />
+                  <span className="hidden md:inline">{username}</span>
+                </div>
+
+                {/* Logout */}
                 <button
                   className="flex items-center w-full text-lg text-gray-700 hover:bg-purple-100 hover:text-purple-700 rounded-xl p-3 transition-all duration-200 group"
                   onClick={handleLogout}

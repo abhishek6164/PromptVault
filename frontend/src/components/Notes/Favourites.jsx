@@ -9,7 +9,7 @@ function Favorites() {
   const [notes, setNotes] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
 
-  // Fetch favorites notes from MongoDB
+  // Fetch favorite notes
   useEffect(() => {
     fetchNotes();
   }, []);
@@ -17,14 +17,11 @@ function Favorites() {
   const fetchNotes = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(
-        "http://localhost:5000/api/notes/favorites",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await axios.get("http://localhost:5000/api/notes/favorites", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      const safeNotes = Array.isArray(res.data.notes) ? res.data.notes : [];
+      const safeNotes = Array.isArray(res.data) ? res.data : [];
       setNotes(safeNotes);
       setFilteredNotes(safeNotes);
     } catch (error) {
@@ -34,16 +31,14 @@ function Favorites() {
     }
   };
 
-  // Add note (always favorite in this page)
+  // Add note
   const addNote = async (newNote) => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "http://localhost:5000/api/notes/add",
+        "http://localhost:5000/api/notes",
         { ...newNote, isFavorite: true },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (res.data?.note) {
@@ -55,28 +50,30 @@ function Favorites() {
     }
   };
 
-  // Toggle favorite (like button)
+  // Toggle favorite
   const toggleFavorite = async (id, currentStatus) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.put(
-        `http://localhost:5000/api/notes/${id}`,
-        { isFavorite: !currentStatus },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const res = await axios.patch(
+        `http://localhost:5000/api/notes/${id}/favorite`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const updatedNote = res.data?.note;
 
-      // Remove if unfavorite
-      setNotes((prev) => prev.filter((note) => note._id !== id));
-      setFilteredNotes((prev) => prev.filter((note) => note._id !== id));
-
-      // If still favorite, add back
-      if (updatedNote?.isFavorite) {
-        setNotes((prev) => [updatedNote, ...prev]);
-        setFilteredNotes((prev) => [updatedNote, ...prev]);
+      if (!updatedNote.isFavorite) {
+        // remove from favorites
+        setNotes((prev) => prev.filter((note) => note._id !== id));
+        setFilteredNotes((prev) => prev.filter((note) => note._id !== id));
+      } else {
+        // update if still favorite
+        setNotes((prev) =>
+          prev.map((note) => (note._id === updatedNote._id ? updatedNote : note))
+        );
+        setFilteredNotes((prev) =>
+          prev.map((note) => (note._id === updatedNote._id ? updatedNote : note))
+        );
       }
     } catch (error) {
       console.error("Error toggling favorite:", error);
@@ -90,9 +87,7 @@ function Favorites() {
       const res = await axios.put(
         `http://localhost:5000/api/notes/${updatedNote._id}`,
         updatedNote,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const safeNote = res.data?.note;
@@ -129,10 +124,8 @@ function Favorites() {
     const safeNotes = Array.isArray(notes) ? notes : [];
 
     let searchResults = safeNotes.filter((note) => {
-      const titleMatch =
-        note.title?.toLowerCase().includes(query.toLowerCase()) || false;
-      const descriptionMatch =
-        note.description?.toLowerCase().includes(query.toLowerCase()) || false;
+      const titleMatch = note.title?.toLowerCase().includes(query.toLowerCase());
+      const descriptionMatch = note.description?.toLowerCase().includes(query.toLowerCase());
       return titleMatch || descriptionMatch;
     });
 

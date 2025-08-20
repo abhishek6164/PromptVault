@@ -92,7 +92,7 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
               </span>
             </h1>
             <p className="text-gray-400 text-lg font-medium animate-pulse">
-              No notes available. Start typing...
+              No Prompt available. Start Creating...
             </p>
           </div>
         ) : (

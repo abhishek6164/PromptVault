@@ -18,7 +18,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // 📌 Add new note
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { title, description, color, image } = req.body;
+    const { title, description, color, image, isFavorite, favoriteKey } = req.body;
 
     if (!title || title.trim() === "") {
       return res.status(400).json({ error: "Title is required" });
@@ -29,14 +29,14 @@ router.post("/", authMiddleware, async (req, res) => {
       description,
       color,
       image,
-      isFavorite: false,
-      favoriteKey: "",
+      isFavorite: isFavorite || false,
+      favoriteKey: favoriteKey || "",
       date: req.body.date || new Date().toLocaleDateString(),
       userId: req.user.id,
     });
 
     const savedNote = await newNote.save();
-    res.json(savedNote);
+    res.json({ note: savedNote }); // ✅ always wrapped
   } catch (error) {
     console.error("❌ Error saving note:", error.message);
     res.status(500).json({ error: "Failed to save note" });
@@ -47,11 +47,11 @@ router.post("/", authMiddleware, async (req, res) => {
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, color, image } = req.body;
+    const { title, description, color, image, isFavorite, favoriteKey } = req.body;
 
     const updatedNote = await Note.findOneAndUpdate(
       { _id: id, userId: req.user.id },
-      { title, description, color, image },
+      { title, description, color, image, isFavorite, favoriteKey },
       { new: true }
     );
 
@@ -59,7 +59,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Note not found" });
     }
 
-    res.json(updatedNote);
+    res.json({ note: updatedNote }); // ✅ consistent response
   } catch (error) {
     console.error("❌ Error updating note:", error.message);
     res.status(500).json({ error: "Failed to update note" });
@@ -99,7 +99,7 @@ router.patch("/:id/favorite", authMiddleware, async (req, res) => {
       { new: true }
     );
 
-    res.json(updatedNote);
+    res.json({ note: updatedNote });
   } catch (error) {
     console.error("❌ Error toggling favorite:", error.message);
     res.status(500).json({ error: "Failed to toggle favorite" });
