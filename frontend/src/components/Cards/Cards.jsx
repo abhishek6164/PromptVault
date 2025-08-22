@@ -7,7 +7,7 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
   const [displayedNotes, setDisplayedNotes] = useState([]);
   const [loggedInUser, setLoggedInUser] = useState("");
 
-  // Fetch logged-in user from localStorage
+  // ✅ Logged-in user fetch from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("loggedInUser");
     if (storedUser) {
@@ -15,68 +15,73 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
     }
   }, []);
 
-  // Update displayed notes whenever notes prop changes
+  // ✅ Parent se aaye notes ko sync karo (sirf first time ya jab parent actually change kare)
   useEffect(() => {
     if (notes && notes.length > 0) {
-      const notesWithSearchKeys = notes.map((note) => {
-        const uniqueId = note._id || note.id; // ✅ safe unique id
+      const notesWithKeys = notes.map((note) => {
+        const uniqueId = note._id || note.id;
         return {
           ...note,
           searchKey: `${note.title || "untitled"}-${uniqueId}`.toLowerCase(),
         };
       });
-      setDisplayedNotes(notesWithSearchKeys);
+      setDisplayedNotes(notesWithKeys);
     } else {
       setDisplayedNotes([]);
+      
     }
   }, [notes]);
 
+  // ✅ Open modal
   const handleNoteClick = (note) => {
     setSelectedNote(note);
   };
 
+  // ✅ Close modal
   const handleCloseModal = () => {
     setSelectedNote(null);
   };
 
+  // ✅ Update note without refresh
   const handleUpdateNote = (updatedNote) => {
     const uniqueId = updatedNote._id || updatedNote.id;
-    const updatedNoteWithKey = {
-      ...updatedNote,
-      searchKey: `${updatedNote.title || "untitled"}-${uniqueId}`.toLowerCase(),
-    };
 
-    const updatedNotes = displayedNotes.map((note) =>
-      (note._id || note.id) === uniqueId ? updatedNoteWithKey : note
+    setDisplayedNotes((prev) =>
+      prev.map((note) =>
+        (note._id || note.id) === uniqueId
+          ? {
+              ...updatedNote,
+              searchKey: `${updatedNote.title || "untitled"}-${uniqueId}`.toLowerCase(),
+            }
+          : note
+      )
     );
-    setDisplayedNotes(updatedNotes);
-    onUpdateNote && onUpdateNote(updatedNoteWithKey);
-    setSelectedNote(null);
+
+    // parent ko bhi notify kar (agar API call karna hai)
+    onUpdateNote?.(updatedNote);
+
+    setSelectedNote(null); // modal band
   };
 
+  // ✅ Delete note without refresh
   const handleDeleteNote = (id) => {
-    const updatedNotes = displayedNotes.filter(
-      (note) => (note._id || note.id) !== id
+    setDisplayedNotes((prev) =>
+      prev.filter((note) => (note._id || note.id) !== id)
     );
-    setDisplayedNotes(updatedNotes);
-    onDeleteNote && onDeleteNote(id);
+
+    onDeleteNote?.(id);
   };
 
-  const handleToggleFavorite = (noteId, uniqueKey) => {
-    const updatedNotes = displayedNotes.map((note) => {
-      const currentId = note._id || note.id;
-      if (currentId === noteId) {
-        return {
-          ...note,
-          isFavorite: !note.isFavorite,
-          favoriteKey: uniqueKey || note.favoriteKey,
-        };
-      }
-      return note;
-    });
-
-    setDisplayedNotes(updatedNotes);
-    localStorage.setItem("notes", JSON.stringify(updatedNotes));
+  // ✅ Toggle favorite (local + parent notify)
+  const handleToggleFavorite = (noteId) => {
+    setDisplayedNotes((prev) =>
+      prev.map((note) =>
+        (note._id || note.id) === noteId
+          ? { ...note, isFavorite: !note.isFavorite }
+          : note
+      )
+    );
+    onUpdateNote?.({ id: noteId, toggleFavorite: true }); // parent ko inform
   };
 
   return (
@@ -100,7 +105,6 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
             <div key={note.searchKey} className="relative">
               <CreateCard
                 {...note}
-                searchKey={note.searchKey}
                 onClick={() => handleNoteClick(note)}
                 onDelete={() => handleDeleteNote(note._id || note.id)}
                 onToggleFavorite={() => handleToggleFavorite(note._id || note.id)}
@@ -110,6 +114,7 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
         )}
       </div>
 
+      {/* ✅ Modal properly connected */}
       {selectedNote && (
         <NoteModal
           note={selectedNote}
@@ -121,3 +126,4 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
     </div>
   );
 }
+  

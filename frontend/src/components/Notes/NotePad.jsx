@@ -44,52 +44,56 @@ function NotePad() {
     }
   };
 
+  // 🆕 Add new note (without refresh)
   const addNote = async (newNote) => {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await axios.post(
-      "http://localhost:5000/api/notes",
-      newNote,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        "http://localhost:5000/api/notes",
+        newNote,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    // 🔑 yaha res.data.note
-    setNotes((prev) => [res.data.note, ...prev]);
-    setFilteredNotes((prev) => [res.data.note, ...prev]);
-  } catch (error) {
-    console.error("❌ Error adding note:", error.response?.data || error.message);
-  }
-};
+      const createdNote = res.data.note || res.data;
 
+      setNotes((prev) => [createdNote, ...prev]);
+      setFilteredNotes((prev) => [createdNote, ...prev]);
+    } catch (error) {
+      console.error("❌ Error adding note:", error.response?.data || error.message);
+    }
+  };
 
-
+  // ✏️ Update note instantly
   const handleUpdateNote = async (updatedNote) => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
         `http://localhost:5000/api/notes/${updatedNote._id}`,
         updatedNote,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      const savedNote = res.data;
+
       setNotes((prev) =>
-        prev.map((note) => (note._id === res.data._id ? res.data : note))
+        prev.map((note) => (note._id === savedNote._id ? savedNote : note))
       );
       setFilteredNotes((prev) =>
-        prev.map((note) => (note._id === res.data._id ? res.data : note))
+        prev.map((note) => (note._id === savedNote._id ? savedNote : note))
       );
     } catch (error) {
       console.error("❌ Error updating note:", error);
     }
   };
 
+  // 🗑️ Delete note instantly
   const handleDeleteNote = async (noteId) => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/api/notes/${noteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setNotes((prev) => prev.filter((note) => note._id !== noteId));
       setFilteredNotes((prev) => prev.filter((note) => note._id !== noteId));
     } catch (error) {
@@ -97,6 +101,7 @@ function NotePad() {
     }
   };
 
+  // 🔍 Search + Sort
   const handleSearch = (query, sortOrder) => {
     let searchResults = notes.filter((note) => {
       const titleMatch = note.title?.toLowerCase().includes(query.toLowerCase());
@@ -105,8 +110,8 @@ function NotePad() {
     });
 
     searchResults.sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
+      const dateA = new Date(a.date || a.createdAt);
+      const dateB = new Date(b.date || b.createdAt);
       return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
     });
 

@@ -1,172 +1,136 @@
-import { useState, useRef, useEffect } from "react";
-import { X, Maximize2, Minimize2, Upload, Save } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
-export function NoteModal({ note, isOpen, onClose, onUpdate }) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
+export function NoteModal({ note, onClose, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
   const [editedContent, setEditedContent] = useState("");
   const [previewImage, setPreviewImage] = useState("");
-  const fileInputRef = useRef(null);
-  const navigate = useNavigate();
 
+  // jab modal open ho tab note data set ho jaaye
   useEffect(() => {
     if (note) {
+      setEditedTitle(note.title || "");
       setEditedContent(note.description || "");
       setPreviewImage(note.image || "");
     }
   }, [note]);
 
-  if (!isOpen || !note) return null;
-
-  const handleFullscreenToggle = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
- const handleImageUpload = (event) => {
-  const file = event.target.files?.[0];
-  if (file && file.type.startsWith("image/")) {
+  // image change handler
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result); // Base64 string
-    };
+    reader.onloadend = () => setPreviewImage(reader.result);
     reader.readAsDataURL(file);
-  }
-};
-  
-
-  const handleSave = () => {
-    const updatedNote = {
-      ...note,
-      description: editedContent,
-      image: previewImage,
-    };
-    onUpdate(updatedNote);
-    setIsEditing(false);
   };
 
-  const handleClose = () => {
-    setIsEditing(false);
-    setIsFullscreen(false);
-    onClose();
+  // save handler
+  const handleSave = async () => {
+    try {
+      const updatedNote = {
+        ...note,
+        title: editedTitle,
+        description: editedContent,
+        image: previewImage,
+      };
+
+      const res = await fetch(`http://localhost:5000/api/notes/${note._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(updatedNote),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        onUpdate(data.note); // parent ko updated note bhejna
+        setIsEditing(false);
+        onClose(); // save ke baad modal band ho jaaye
+      } else {
+        console.error("❌ Update failed:", data.message);
+      }
+    } catch (err) {
+      console.error("❌ Error updating note:", err);
+    }
   };
+
+  if (!note) return null;
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300 ${
-        isFullscreen ? "" : "bg-black/40"
-      }`}
-    >
-      <div
-        className={`bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 ease-in-out ${
-          isFullscreen
-            ? "fixed inset-0 scale-100"
-            : "w-full max-w-3xl scale-95 hover:scale-100"
-        }`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-200/80">
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-              {note.title || "Untitled Note"}
-            </h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleFullscreenToggle}
-              className="p-2.5 hover:bg-gray-100/80 rounded-xl transition-all duration-200"
-            >
-              {isFullscreen ? (
-                <Minimize2
-                  className="text-gray-500 transform transition-transform hover:scale-110"
-                  size={22}
-                />
-              ) : (
-                <Maximize2
-                  className="text-gray-500 transform transition-transform hover:scale-110"
-                  size={22}
-                />
-              )}
-            </button>
-            <button
-              onClick={handleClose}
-              className="p-2.5 hover:bg-red-50 rounded-xl transition-all duration-200"
-            >
-              <X
-                className="text-red-500 transform transition-transform hover:scale-110"
-                size={22}
-              />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 md:p-8">
-          <div className="mb-6 flex flex-wrap gap-4">
-            {note.duration && (
-              <span className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
-                Duration: {note.duration}
-              </span>
-            )}
-          </div>
-          {isEditing ? (
-            <textarea
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-              className="w-full min-h-[200px] p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 resize-y"
-              placeholder="Enter your note..."
-            />
-          ) : (
-            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-              {note.description || "No description available."}
-            </p>
-          )}
-
-          {/* Image Preview */}
-          {previewImage && (
-            <div className="mt-6 relative group">
-              <img
-                src={previewImage}
-                alt="Note attachment"
-                className="transition-transform duration-300 w-[10%] h-[15%] rounded-xl shadow-lg group-hover:scale-[1.02]"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border-t border-gray-200/80 bg-gray-50/80">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-gray-700 bg-white hover:bg-gray-100 rounded-xl shadow-sm transition-all duration-200 hover:shadow"
-          >
-            <Upload size={20} />
-            <span>Upload Image</span>
-          </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div className="bg-white rounded-2xl shadow-xl w-[600px] p-6 relative">
+        {/* Title */}
+        {isEditing ? (
           <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImageUpload}
-            accept="image/*"
-            className="hidden"
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            className="w-full p-3 border rounded-xl mb-4"
+            placeholder="Enter title..."
           />
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="flex-1 sm:flex-none px-5 py-2.5 text-gray-700 bg-white hover:bg-gray-100 rounded-xl shadow-sm transition-all duration-200 hover:shadow"
-            >
-              {isEditing ? "Cancel" : "Edit"}
-            </button>
-            {isEditing && (
+        ) : (
+          <h2 className="text-2xl font-bold mb-4">{note.title}</h2>
+        )}
+
+        {/* Description */}
+        {isEditing ? (
+          <textarea
+            value={editedContent}
+            onChange={(e) => setEditedContent(e.target.value)}
+            className="w-full p-3 border rounded-xl mb-4"
+            placeholder="Enter description..."
+            rows="5"
+          />
+        ) : (
+          <p className="mb-4">{note.description}</p>
+        )}
+
+        {/* Image */}
+        {previewImage && (
+          <img
+            src={previewImage}
+            alt="Note"
+            className="w-full h-64 object-cover rounded-xl mb-4"
+          />
+        )}
+
+        {isEditing && (
+          <input type="file" accept="image/*" onChange={handleImageChange} />
+        )}
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-3 mt-4">
+          {isEditing ? (
+            <>
               <button
                 onClick={handleSave}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg"
               >
-                <Save size={20} />
-                <span>Save</span>
+                Save
               </button>
-            )}
-          </div>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="bg-gray-400 text-white px-4 py-2 rounded-lg"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+            >
+              Edit
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
