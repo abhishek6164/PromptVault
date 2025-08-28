@@ -28,7 +28,7 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
       setDisplayedNotes(notesWithKeys);
     } else {
       setDisplayedNotes([]);
-      
+
     }
   }, [notes]);
 
@@ -50,9 +50,9 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
       prev.map((note) =>
         (note._id || note.id) === uniqueId
           ? {
-              ...updatedNote,
-              searchKey: `${updatedNote.title || "untitled"}-${uniqueId}`.toLowerCase(),
-            }
+            ...updatedNote,
+            searchKey: `${updatedNote.title || "untitled"}-${uniqueId}`.toLowerCase(),
+          }
           : note
       )
     );
@@ -124,6 +124,6 @@ export function Cards({ notes, onUpdateNote, onDeleteNote }) {
         />
       )}
     </div>
-  );
+
+  )
 }
-  
